@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game of Thrones Character Relationships</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .node circle {
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+        .link {
+            stroke-opacity: 0.6;
+        }
+        text {
+            font-family: Arial, sans-serif;
+            font-size: 10px;
+        }
+        /* Make SVG responsive */
+        svg {
+            width: 100vw;
+            height: 100vh;
+        }
+        /* Style for legend */
+        .legend {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        // Load JSON data
+        d3.json("got-r.json").then(data => {
+            const svg = d3.select("body").append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .call(d3.zoom().on("zoom", (event) => {
+                    svg.attr("transform", event.transform);
+                }))
+                .append("g");  // Group for zooming and panning
+
+            const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+            // Color scale for relationships
+            const relationshipColor = d3.scaleOrdinal()
+                .domain(["siblings", "parents", "marriedEngaged", "killed", "allies", "serves", "houseName"])
+                .range(["#ff4500", "#32cd32", "#1e90ff", "#8a2be2", "#ffa500", "#2e8b57", "#d2691e"]);  // Customize colors
+
+            const simulation = d3.forceSimulation(data.nodes)
+                .force("link", d3.forceLink(data.links).id(d => d.id).distance(80))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+
+            // Define arrow markers for each relationship type
+            const relationships = relationshipColor.domain();
+            relationships.forEach(rel => {
+                svg.append("defs").append("marker")
+                    .attr("id", `arrowhead-${rel}`)
+                    .attr("viewBox", "0 -5 10 10")
+                    .attr("refX", 15)  // Position of arrow on the link
+                    .attr("refY", 0)
+                    .attr("markerWidth", 6)
+                    .attr("markerHeight", 6)
+                    .attr("orient", "auto")
+                    .append("path")
+                    .attr("d", "M0,-5L10,0L0,5")  // Shape of the arrow
+                    .attr("fill", relationshipColor(rel));  // Set color based on relationship
+            });
+
+            const link = svg.append("g")
+                .attr("class", "links")
+                .selectAll("line")
+                .data(data.links)
+                .enter().append("line")
+                .attr("class", "link")
+                .attr("stroke-width", 1)
+                .attr("stroke", d => relationshipColor(d.relationship))  // Color edges based on relationship
+                .attr("marker-end", d => `url(#arrowhead-${d.relationship})`);  // Use specific marker based on relationship
+
+            const node = svg.append("g")
+                .attr("class", "nodes")
+                .selectAll("g")
+                .data(data.nodes)
+                .enter().append("g");
+
+            node.append("circle")
+                .attr("r", d => d.value * 2)  // Scale node size based on 'value'
+                .attr("fill", d => color(d.group));
+
+            node.append("text")
+                .attr("x", 6)
+                .attr("y", 3)
+                .text(d => d.id);
+
+            simulation.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+            });
+
+            // Add legend
+            const legendData = relationshipColor.domain();
+            const legend = svg.append("g")
+                .attr("class", "legend")
+                .attr("transform", `translate(${width - 150}, 20)`);  // Position the legend in the top-right corner
+
+            legend.selectAll("rect")
+                .data(legendData)
+                .enter()
+                .append("rect")
+                .attr("x", 0)
+                .attr("y", (d, i) => i * 20)
+                .attr("width", 12)
+                .attr("height", 12)
+                .attr("fill", d => relationshipColor(d));
+
+            legend.selectAll("text")
+                .data(legendData)
+                .enter()
+                .append("text")
+                .attr("x", 20)
+                .attr("y", (d, i) => i * 20 + 10)
+                .text(d => d)
+                .attr("alignment-baseline", "middle");
+        }).catch(error => {
+            console.error("Error loading JSON data:", error);
+        });
+    </script>
+</body>
+</html>
