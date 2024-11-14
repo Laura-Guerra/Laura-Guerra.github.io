@@ -27,6 +27,24 @@
             font-family: Arial, sans-serif;
             font-size: 12px;
         }
+        /* Footer styles */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            font-size: 14px;
+        }
+        footer a {
+            color: #ffa500;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -136,5 +154,12 @@
             console.error("Error loading JSON data:", error);
         });
     </script>
+
+    <!-- Footer with credits and links -->
+    <footer>
+        <p>Data source: <a href="https://networks.skewed.de/net/game_thrones" target="_blank">Game of Thrones Character Relationships Data</a></p>
+        <p>Citation: A. Beveridge and J. Shan, "Network of Thrones." Math Horizons 23(4), 18-22 (2016), <a href="https://doi.org/10.4169/mathhorizons.23.4.18" target="_blank">https://doi.org/10.4169/mathhorizons.23.4.18</a> [@sci-hub]</p>
+        <p>&copy; 2024 Your Name. All rights reserved.</p>
+    </footer>
 </body>
 </html>
